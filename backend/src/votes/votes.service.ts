@@ -63,18 +63,18 @@ export class VotesService {
   async getResults(electionId: number) {
     const results = await this.votesRepository
       .createQueryBuilder('vote')
-      .select('vote.candidateId', 'candidateId')
-      .addSelect('COUNT(vote.id)', 'totalVotes')
       .leftJoin('vote.candidate', 'candidate')
       .leftJoin('candidate.user', 'user')
-      .addSelect('user.name', 'candidateName')
       .leftJoin('candidate.party', 'party')
+      .select('candidate.id', 'candidateId')
+      .addSelect('user.name', 'candidateName')
       .addSelect('party.name', 'partyName')
-      .where('vote.electionId = :electionId', { electionId })
-      .groupBy('vote.candidateId')
+      .addSelect('COUNT(vote.id)', 'totalVotes')
+      .where('vote.election = :electionId', { electionId })
+      .groupBy('candidate.id')
       .addGroupBy('user.name')
       .addGroupBy('party.name')
-      .orderBy('totalVotes', 'DESC')
+      .orderBy('COUNT(vote.id)', 'DESC')
       .getRawMany();
 
     return results;

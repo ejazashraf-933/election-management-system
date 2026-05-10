@@ -11,14 +11,14 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async register(name: string, email: string, password: string, role: UserRole, constituencyId?: number) {
+  async register(name: string, email: string, password: string, constituencyId?: number) {
     const existingUser = await this.usersService.findByEmail(email);
     if (existingUser) throw new ConflictException('Email already registered');
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const user = await this.usersService.create(
-      { name, email, password: hashedPassword, role },
+      { name, email, password: hashedPassword, role: UserRole.VOTER },
       constituencyId,
     );
 

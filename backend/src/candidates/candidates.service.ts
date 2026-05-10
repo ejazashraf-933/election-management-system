@@ -5,6 +5,7 @@ import { Candidate } from './candidate.entity';
 import { UsersService } from '../users/users.service';
 import { PartiesService } from '../parties/parties.service';
 import { ConstituenciesService } from '../constituencies/constituencies.service';
+import { UserRole } from '../users/user.entity';
 
 @Injectable()
 export class CandidatesService {
@@ -32,6 +33,9 @@ export class CandidatesService {
     if (!isIndependent && partyId) {
       candidate.party = await this.partiesService.findOne(partyId);
     }
+
+    // Promote user role to candidate automatically
+    await this.usersService.updateRole(userId, UserRole.CANDIDATE);
 
     return this.candidatesRepository.save(candidate);
   }

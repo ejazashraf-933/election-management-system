@@ -11,11 +11,6 @@ export class ElectionsService {
   ) {}
 
   async create(data: Partial<Election>): Promise<Election> {
-    const running = await this.electionsRepository.findOne({
-      where: { status: ElectionStatus.RUNNING },
-    });
-    if (running) throw new BadRequestException('An election is already running');
-
     const election = this.electionsRepository.create(data);
     return this.electionsRepository.save(election);
   }

@@ -1,122 +1,83 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
+import { ToastProvider } from './context/ToastContext';
+import Navbar from './components/Navbar';
+import ProtectedRoute from './components/ProtectedRoute';
 
-function App() {
-  const [count, setCount] = useState(0)
+import Login from './pages/auth/Login';
+import Register from './pages/auth/Register';
+import Elections from './pages/admin/Elections';
+import Parties from './pages/admin/Parties';
+import Constituencies from './pages/admin/Constituencies';
+import Candidates from './pages/admin/Candidates';
+import Users from './pages/admin/Users';
+import Vote from './pages/voter/Vote';
+import History from './pages/voter/History';
+import VoterCandidates from './pages/voter/Candidates';
+import RegisterCandidate from './pages/voter/RegisterCandidate';
+import Results from './pages/results/Results';
+
+const authRoutes = ['/login', '/register'];
+
+function Layout() {
+  const location = useLocation();
+  const isAuth = authRoutes.includes(location.pathname);
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+      {!isAuth && <Navbar />}
+      <main style={{ flex: 1, background: '#f1f5f9' }}>
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
 
-      <div className="ticks"></div>
+          <Route path="/admin/elections" element={
+            <ProtectedRoute roles={['admin', 'superadmin']}><Elections /></ProtectedRoute>
+          } />
+          <Route path="/admin/parties" element={
+            <ProtectedRoute roles={['admin', 'superadmin']}><Parties /></ProtectedRoute>
+          } />
+          <Route path="/admin/constituencies" element={
+            <ProtectedRoute roles={['admin', 'superadmin']}><Constituencies /></ProtectedRoute>
+          } />
+          <Route path="/admin/candidates" element={
+            <ProtectedRoute roles={['admin', 'superadmin']}><Candidates /></ProtectedRoute>
+          } />
+          <Route path="/admin/users" element={
+            <ProtectedRoute roles={['admin', 'superadmin']}><Users /></ProtectedRoute>
+          } />
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+          <Route path="/vote" element={
+            <ProtectedRoute roles={['voter', 'candidate']}><Vote /></ProtectedRoute>
+          } />
+          <Route path="/history" element={
+            <ProtectedRoute roles={['voter', 'candidate']}><History /></ProtectedRoute>
+          } />
+          <Route path="/candidates" element={
+            <ProtectedRoute roles={['voter', 'candidate']}><VoterCandidates /></ProtectedRoute>
+          } />
+          <Route path="/register-candidate" element={
+            <ProtectedRoute roles={['voter']}><RegisterCandidate /></ProtectedRoute>
+          } />
+          <Route path="/results" element={
+            <ProtectedRoute><Results /></ProtectedRoute>
+          } />
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+          <Route path="/" element={<Navigate to="/login" replace />} />
+        </Routes>
+      </main>
+    </div>
+  );
 }
 
-export default App
+export default function App() {
+  return (
+    <AuthProvider>
+      <ToastProvider>
+        <BrowserRouter>
+          <Layout />
+        </BrowserRouter>
+      </ToastProvider>
+    </AuthProvider>
+  );
+}

@@ -7,11 +7,11 @@ import { UserRole } from '../users/user.entity';
 import { CreateConstituencyDto } from './dto/create-constituency.dto';
 
 @Controller('constituencies')
-@UseGuards(JwtAuthGuard, RolesGuard)
 export class ConstituenciesController {
   constructor(private constituenciesService: ConstituenciesService) {}
 
   @Post()
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.SUPERADMIN)
   create(@Body() dto: CreateConstituencyDto) {
     return this.constituenciesService.create(dto);
@@ -28,12 +28,14 @@ export class ConstituenciesController {
   }
 
   @Put(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.SUPERADMIN)
   update(@Param('id', ParseIntPipe) id: number, @Body() body: any) {
     return this.constituenciesService.update(id, body);
   }
 
   @Delete(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.SUPERADMIN)
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.constituenciesService.remove(id);

@@ -8,6 +8,9 @@ import { LoggingInterceptor } from './common/logging.interceptor';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  // Enable CORS for frontend
+  app.enableCors({ origin: 'http://localhost:5173', credentials: true });
+
   // Use Winston as the global logger
   app.useLogger(app.get(WINSTON_MODULE_NEST_PROVIDER));
 
