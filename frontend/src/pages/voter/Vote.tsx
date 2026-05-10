@@ -98,7 +98,7 @@ export default function Vote() {
         </div>
         <select
           value={selectedElection}
-          onChange={e => { setSelectedElection(e.target.value); setSelectedCandidate(''); setMessage(''); setError(''); }}
+          onChange={e => { setSelectedElection(e.target.value); setSelectedCandidate(''); }}
           style={{
             width: '100%', padding: '11px 14px', border: '1.5px solid #e2e8f0',
             borderRadius: 10, fontSize: 14, color: '#1e293b', background: 'white',
