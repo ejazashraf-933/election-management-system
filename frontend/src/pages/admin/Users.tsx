@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import api from '../../api/axios';
 import { useToast } from '../../context/ToastContext';
+import PageHeader from '../../components/ui/PageHeader';
 
 const roleColors: Record<string, { bg: string; color: string; border: string }> = {
   superadmin: { bg: '#fef9c3', color: '#713f12', border: '#fde047' },
@@ -65,24 +66,23 @@ export default function Users() {
 
   const noConstituency = users.filter(u => !u.constituency).length;
 
+  const warningBadge = noConstituency > 0 ? (
+    <div style={{
+      background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 12,
+      padding: '10px 16px', fontSize: 13, color: '#92400e', fontWeight: 500,
+    }}>
+      ⚠️ {noConstituency} user{noConstituency > 1 ? 's' : ''} without constituency
+    </div>
+  ) : undefined;
+
   return (
-    <div style={{ maxWidth: 960, margin: '0 auto', padding: '32px 24px' }}>
-      {/* Header */}
-      <div style={{ marginBottom: 28, display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16 }}>
-        <div>
-          <h1 style={{ fontSize: 26, fontWeight: 700, color: '#0f172a', marginBottom: 4 }}>Users</h1>
-          <p style={{ fontSize: 14, color: '#64748b' }}>Manage registered users and assign constituencies</p>
-        </div>
-        {noConstituency > 0 && (
-          <div style={{
-            background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 12,
-            padding: '10px 16px', fontSize: 13, color: '#92400e', fontWeight: 500,
-            flexShrink: 0,
-          }}>
-            ⚠️ {noConstituency} user{noConstituency > 1 ? 's' : ''} without constituency
-          </div>
-        )}
-      </div>
+    <div className="page-wrap">
+      <PageHeader
+        title="Users"
+        subtitle="Manage registered users and assign constituencies"
+        action={warningBadge}
+        alignTop
+      />
 
       {/* Search */}
       <div style={{
@@ -102,8 +102,7 @@ export default function Users() {
         />
         {filter && (
           <button onClick={() => setFilter('')} style={{
-            background: 'none', border: 'none', cursor: 'pointer',
-            fontSize: 16, color: '#94a3b8', padding: 0, lineHeight: 1,
+            background: 'none', border: 'none', fontSize: 16, color: '#94a3b8', padding: 0, lineHeight: 1,
           }}>×</button>
         )}
         <span style={{ fontSize: 13, color: '#94a3b8', flexShrink: 0 }}>{filtered.length} users</span>
@@ -121,7 +120,7 @@ export default function Users() {
               onClick={() => setRoleFilter(pill.key)}
               style={{
                 padding: '6px 14px', borderRadius: 20, fontSize: 13, fontWeight: 600,
-                cursor: 'pointer', transition: 'all 0.15s', display: 'flex', alignItems: 'center', gap: 6,
+                display: 'flex', alignItems: 'center', gap: 6,
                 background: isActive ? (rc?.bg ?? '#eff6ff') : 'white',
                 color: isActive ? (rc?.color ?? '#1d4ed8') : '#64748b',
                 border: `1.5px solid ${isActive ? (rc?.border ?? '#bfdbfe') : '#e2e8f0'}`,
@@ -133,9 +132,7 @@ export default function Users() {
                 fontSize: 11, background: isActive ? 'rgba(0,0,0,0.1)' : '#f1f5f9',
                 color: isActive ? 'inherit' : '#94a3b8',
                 borderRadius: 10, padding: '1px 6px', fontWeight: 700,
-              }}>
-                {count}
-              </span>
+              }}>{count}</span>
             </button>
           );
         })}
@@ -166,42 +163,36 @@ export default function Users() {
                   <div style={{
                     width: 44, height: 44, borderRadius: '50%', flexShrink: 0,
                     background: rc.bg, border: `2px solid ${rc.border}`,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: 20,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20,
                   }}>
                     {roleIcons[u.role] ?? '👤'}
                   </div>
 
                   {/* Info */}
-                  <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ flex: 1, minWidth: 160 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 3 }}>
                       <p style={{ fontWeight: 700, color: '#0f172a', fontSize: 15 }}>{u.name}</p>
                       <span style={{
                         fontSize: 11, fontWeight: 600, borderRadius: 20, padding: '2px 8px',
                         background: rc.bg, color: rc.color, border: `1px solid ${rc.border}`,
-                      }}>
-                        {u.role}
-                      </span>
+                      }}>{u.role}</span>
                       {noConst && (
                         <span style={{
                           fontSize: 11, fontWeight: 600, borderRadius: 20, padding: '2px 8px',
                           background: '#fef9c3', color: '#92400e', border: '1px solid #fde047',
-                        }}>
-                          ⚠️ No constituency
-                        </span>
+                        }}>⚠️ No constituency</span>
                       )}
                     </div>
                     <p style={{ fontSize: 13, color: '#64748b' }}>{u.email}</p>
                     <p style={{ fontSize: 12, color: '#94a3b8', marginTop: 2 }}>
                       {u.constituency
                         ? `📍 ${u.constituency.name} — ${u.constituency.province}`
-                        : '📍 No constituency assigned'
-                      }
+                        : '📍 No constituency assigned'}
                     </p>
                   </div>
 
                   {/* Assign constituency */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+                  <div className="assign-row">
                     <select
                       value={selectedConst[u.id] ?? u.constituency?.id ?? ''}
                       onChange={e => setSelectedConst(prev => ({ ...prev, [u.id]: e.target.value }))}

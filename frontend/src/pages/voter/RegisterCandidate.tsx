@@ -32,7 +32,6 @@ export default function RegisterCandidate() {
     Promise.all([api.get('/parties'), api.get('/constituencies')]).then(([p, c]) => {
       setParties(p.data);
       setConstituencies(c.data);
-      // Pre-fill constituency from user profile if available
       if (user?.constituency?.id) {
         setForm(f => ({ ...f, constituencyId: String(user.constituency.id) }));
       }
@@ -61,7 +60,6 @@ export default function RegisterCandidate() {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
 
-      // Update role in context/localStorage so navbar switches to candidate links
       toast('You are now registered as a candidate!', 'success');
       updateRole('candidate');
       navigate('/vote');
@@ -75,7 +73,7 @@ export default function RegisterCandidate() {
   const initial = user?.name?.[0]?.toUpperCase() ?? '?';
 
   return (
-    <div style={{ maxWidth: 520, margin: '40px auto', padding: '0 24px' }}>
+    <div className="page-wrap-card">
       {/* Card */}
       <div style={{
         background: 'white', borderRadius: 20,
@@ -145,7 +143,6 @@ export default function RegisterCandidate() {
 
         {/* Form */}
         <form onSubmit={handleSubmit} style={{ padding: '16px 28px 28px' }}>
-          {/* Logged in as */}
           <div style={{
             background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 10,
             padding: '12px 16px', marginBottom: 18, fontSize: 13, color: '#475569',

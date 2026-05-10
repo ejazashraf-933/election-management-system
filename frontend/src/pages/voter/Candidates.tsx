@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import api from '../../api/axios';
-
-const avatarColors = ['#7c3aed', '#0891b2', '#15803d', '#b45309', '#be123c', '#0369a1'];
+import PageHeader from '../../components/ui/PageHeader';
+import CandidateAvatar from '../../components/ui/CandidateAvatar';
+import EmptyState from '../../components/ui/EmptyState';
 
 export default function Candidates() {
   const [candidates, setCandidates] = useState<any[]>([]);
@@ -39,13 +40,14 @@ export default function Candidates() {
     candidates.filter(c => c.party).map(c => [c.party.id, c.party])
   ).values());
 
+  const selectStyle: React.CSSProperties = {
+    padding: '8px 12px', border: '1.5px solid #e2e8f0', borderRadius: 8,
+    fontSize: 13, color: '#1e293b', background: 'white',
+  };
+
   return (
-    <div style={{ maxWidth: 960, margin: '0 auto', padding: '32px 24px' }}>
-      {/* Header */}
-      <div style={{ marginBottom: 28 }}>
-        <h1 style={{ fontSize: 26, fontWeight: 700, color: '#0f172a', marginBottom: 4 }}>Candidates</h1>
-        <p style={{ fontSize: 14, color: '#64748b' }}>Browse all registered candidates</p>
-      </div>
+    <div className="page-wrap">
+      <PageHeader title="Candidates" subtitle="Browse all registered candidates" />
 
       {/* Filters */}
       <div style={{
@@ -54,14 +56,7 @@ export default function Candidates() {
         display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center',
       }}>
         <span style={{ fontSize: 13, fontWeight: 600, color: '#374151' }}>Filter:</span>
-        <select
-          value={filterConstituency}
-          onChange={e => setFilterConstituency(e.target.value)}
-          style={{
-            padding: '8px 12px', border: '1.5px solid #e2e8f0', borderRadius: 8,
-            fontSize: 13, color: '#1e293b', background: 'white',
-          }}
-        >
+        <select style={selectStyle} value={filterConstituency} onChange={e => setFilterConstituency(e.target.value)}>
           <option value="">All Constituencies</option>
           {constituencies.map((c: any) => (
             <option key={c.id} value={c.id}>
@@ -69,35 +64,22 @@ export default function Candidates() {
             </option>
           ))}
         </select>
-
-        <select
-          value={filterParty}
-          onChange={e => setFilterParty(e.target.value)}
-          style={{
-            padding: '8px 12px', border: '1.5px solid #e2e8f0', borderRadius: 8,
-            fontSize: 13, color: '#1e293b', background: 'white',
-          }}
-        >
+        <select style={selectStyle} value={filterParty} onChange={e => setFilterParty(e.target.value)}>
           <option value="">All Parties</option>
           {parties.map((p: any) => (
             <option key={p.id} value={p.name}>{p.name}</option>
           ))}
           <option value="__independent__">Independent</option>
         </select>
-
         {(filterConstituency || filterParty) && (
           <button
             onClick={() => { setFilterConstituency(''); setFilterParty(''); }}
-            style={{
-              fontSize: 12, color: '#64748b', background: 'none', border: 'none',
-              cursor: 'pointer', textDecoration: 'underline',
-            }}
+            style={{ fontSize: 12, color: '#64748b', background: 'none', border: 'none', textDecoration: 'underline' }}
           >
             Clear filters
           </button>
         )}
-
-        <span style={{ marginLeft: 'auto', fontSize: 13, color: '#94a3b8' }}>
+        <span style={{ fontSize: 13, color: '#94a3b8', marginLeft: 'auto' }}>
           {filtered.length} candidate{filtered.length !== 1 ? 's' : ''}
         </span>
       </div>
@@ -110,54 +92,30 @@ export default function Candidates() {
           Loading candidates...
         </div>
       ) : filtered.length === 0 ? (
-        <div style={{
-          background: 'white', borderRadius: 20, border: '1px solid #e2e8f0',
-          padding: '56px 32px', textAlign: 'center',
-        }}>
-          <div style={{ fontSize: 48, marginBottom: 16 }}>🏛️</div>
-          <p style={{ fontSize: 17, fontWeight: 600, color: '#374151', marginBottom: 8 }}>No Candidates Found</p>
-          <p style={{ fontSize: 14, color: '#94a3b8' }}>Try adjusting the filters above.</p>
-        </div>
+        <EmptyState emoji="🏛️" title="No Candidates Found" description="Try adjusting the filters above." />
       ) : (
         <div className="grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
           {filtered.map((c: any, i: number) => {
-            const color = avatarColors[i % avatarColors.length];
-            const initial = c.user?.name?.[0]?.toUpperCase() ?? '?';
             const isMyConstituency = myConstituencyId && c.constituency?.id === myConstituencyId;
-
             return (
               <div key={c.id} style={{
                 background: 'white', borderRadius: 16,
                 border: `1px solid ${isMyConstituency ? '#bfdbfe' : '#e2e8f0'}`,
                 boxShadow: isMyConstituency ? '0 2px 8px rgba(37,99,235,0.1)' : '0 1px 3px rgba(0,0,0,0.06)',
-                padding: '20px',
-                position: 'relative',
+                padding: '20px', position: 'relative',
               }}>
                 {isMyConstituency && (
                   <span style={{
                     position: 'absolute', top: 12, right: 12,
                     fontSize: 11, fontWeight: 600, background: '#eff6ff',
-                    color: '#2563eb', border: '1px solid #bfdbfe',
-                    borderRadius: 20, padding: '2px 8px',
+                    color: '#2563eb', border: '1px solid #bfdbfe', borderRadius: 20, padding: '2px 8px',
                   }}>
                     Your Constituency
                   </span>
                 )}
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 14 }}>
-                  {c.photo
-                    ? <img src={c.photo} style={{ width: 56, height: 56, borderRadius: '50%', objectFit: 'cover', border: '2px solid #e2e8f0', flexShrink: 0 }} alt="" />
-                    : (
-                      <div style={{
-                        width: 56, height: 56, borderRadius: '50%', flexShrink: 0,
-                        background: `${color}15`, border: `2px solid ${color}30`,
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        color, fontWeight: 700, fontSize: 22,
-                      }}>
-                        {initial}
-                      </div>
-                    )
-                  }
+                  <CandidateAvatar photo={c.photo} name={c.user?.name ?? '?'} size={56} colorIndex={i} />
                   <div style={{ minWidth: 0 }}>
                     <p style={{ fontWeight: 700, color: '#0f172a', fontSize: 16, marginBottom: 4 }}>
                       {c.user?.name}
@@ -178,20 +136,16 @@ export default function Candidates() {
                   background: '#f8fafc', borderRadius: 10, padding: '10px 14px',
                   display: 'flex', flexDirection: 'column', gap: 6,
                 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
-                    <span style={{ color: '#64748b' }}>Constituency</span>
-                    <span style={{ fontWeight: 600, color: '#0f172a' }}>{c.constituency?.name ?? '—'}</span>
-                  </div>
-                  {c.party?.leaderName && (
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
-                      <span style={{ color: '#64748b' }}>Party Leader</span>
-                      <span style={{ fontWeight: 500, color: '#0f172a' }}>{c.party.leaderName}</span>
+                  {[
+                    { label: 'Constituency', value: c.constituency?.name ?? '—' },
+                    ...(c.party?.leaderName ? [{ label: 'Party Leader', value: c.party.leaderName }] : []),
+                    { label: 'Province', value: c.constituency?.province ?? '—' },
+                  ].map(row => (
+                    <div key={row.label} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
+                      <span style={{ color: '#64748b' }}>{row.label}</span>
+                      <span style={{ fontWeight: 600, color: '#0f172a' }}>{row.value}</span>
                     </div>
-                  )}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
-                    <span style={{ color: '#64748b' }}>Province</span>
-                    <span style={{ fontWeight: 500, color: '#0f172a' }}>{c.constituency?.province ?? '—'}</span>
-                  </div>
+                  ))}
                 </div>
               </div>
             );

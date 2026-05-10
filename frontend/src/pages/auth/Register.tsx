@@ -19,7 +19,6 @@ export default function Register() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // Constituencies endpoint is now public — no token needed
   useEffect(() => {
     axios.get(`${BASE}/constituencies`).then(r => setConstituencies(r.data)).catch(() => {});
   }, []);
@@ -54,11 +53,11 @@ export default function Register() {
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex' }}>
-      {/* Left panel */}
-      <div style={{
-        width: 400, flexShrink: 0,
+      {/* Left panel — hidden on mobile via CSS */}
+      <div className="auth-left" style={{
+        width: 400, flexShrink: 0, flexDirection: 'column',
+        alignItems: 'center', justifyContent: 'center',
         background: 'linear-gradient(160deg, #1e40af 0%, #7c3aed 100%)',
-        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
         padding: 48, color: 'white',
       }}>
         <div style={{
@@ -112,9 +111,9 @@ export default function Register() {
       </div>
 
       {/* Right panel */}
-      <div style={{
+      <div className="auth-right" style={{
         flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
-        padding: '48px 40px', background: '#f8fafc', overflowY: 'auto',
+        background: '#f8fafc', overflowY: 'auto',
       }}>
         <div style={{ width: '100%', maxWidth: 420 }}>
           <h2 style={{ fontSize: 26, fontWeight: 700, color: '#0f172a', marginBottom: 6 }}>
@@ -182,7 +181,6 @@ export default function Register() {
               background: loading ? '#93c5fd' : '#2563eb',
               color: 'white', border: 'none', borderRadius: 10,
               fontSize: 15, fontWeight: 600,
-              cursor: loading ? 'not-allowed' : 'pointer',
             }}>
               {loading ? 'Creating account...' : 'Register as Voter'}
             </button>

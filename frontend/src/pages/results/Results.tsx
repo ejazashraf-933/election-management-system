@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import api from '../../api/axios';
+import PageHeader from '../../components/ui/PageHeader';
+import EmptyState from '../../components/ui/EmptyState';
 
 const barColors = [
   'linear-gradient(90deg, #f59e0b, #fbbf24)',
@@ -9,6 +11,13 @@ const barColors = [
   'linear-gradient(90deg, #f97316, #fb923c)',
   'linear-gradient(90deg, #ec4899, #f472b6)',
 ];
+
+const statusColor: Record<string, { color: string; dot: string }> = {
+  running: { color: '#16a34a', dot: '#22c55e' },
+  ended:   { color: '#475569', dot: '#94a3b8' },
+  paused:  { color: '#c2410c', dot: '#f97316' },
+  pending: { color: '#92400e', dot: '#f59e0b' },
+};
 
 export default function Results() {
   const [elections, setElections] = useState<any[]>([]);
@@ -40,20 +49,9 @@ export default function Results() {
   const maxVotes = Math.max(...results.map((r: any) => Number(r.totalVotes)), 1);
   const totalVotes = results.reduce((sum, r) => sum + Number(r.totalVotes), 0);
 
-  const statusColor: Record<string, { bg: string; color: string; dot: string }> = {
-    running: { bg: '#f0fdf4', color: '#16a34a', dot: '#22c55e' },
-    ended:   { bg: '#f8fafc', color: '#475569', dot: '#94a3b8' },
-    paused:  { bg: '#fff7ed', color: '#c2410c', dot: '#f97316' },
-    pending: { bg: '#fffbeb', color: '#92400e', dot: '#f59e0b' },
-  };
-
   return (
-    <div style={{ maxWidth: 700, margin: '0 auto', padding: '32px 24px' }}>
-      {/* Header */}
-      <div style={{ marginBottom: 28 }}>
-        <h1 style={{ fontSize: 26, fontWeight: 700, color: '#0f172a', marginBottom: 4 }}>Election Results</h1>
-        <p style={{ fontSize: 14, color: '#64748b' }}>Live vote counts and standings</p>
-      </div>
+    <div className="page-wrap-md">
+      <PageHeader title="Election Results" subtitle="Live vote counts and standings" />
 
       {/* Election selector */}
       <div style={{
@@ -97,50 +95,37 @@ export default function Results() {
       )}
 
       {!loading && !fetchError && selectedElection && results.length === 0 && (
-        <div style={{
-          background: 'white', borderRadius: 20, border: '1px solid #e2e8f0',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.06)', padding: '56px 32px', textAlign: 'center',
-        }}>
-          <div style={{ fontSize: 48, marginBottom: 16 }}>📊</div>
-          <p style={{ fontSize: 17, fontWeight: 600, color: '#374151', marginBottom: 8 }}>No Votes Yet</p>
-          <p style={{ fontSize: 14, color: '#94a3b8' }}>No votes have been cast in this election.</p>
-        </div>
+        <EmptyState emoji="📊" title="No Votes Yet" description="No votes have been cast in this election." />
       )}
 
       {results.length > 0 && (
         <>
-          {/* Stats bar */}
-          <div style={{
-            display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16,
-          }}>
+          {/* Stats */}
+          <div className="grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
             <div style={{
-              background: 'white', borderRadius: 14, border: '1px solid #e2e8f0',
-              padding: '14px 18px',
+              background: 'white', borderRadius: 14, border: '1px solid #e2e8f0', padding: '14px 18px',
             }}>
               <p style={{ fontSize: 12, color: '#64748b', marginBottom: 4 }}>Total Votes Cast</p>
               <p style={{ fontSize: 24, fontWeight: 700, color: '#0f172a' }}>{totalVotes}</p>
             </div>
             {electionInfo && (
               <div style={{
-                background: 'white', borderRadius: 14, border: '1px solid #e2e8f0',
-                padding: '14px 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                background: 'white', borderRadius: 14, border: '1px solid #e2e8f0', padding: '14px 18px',
               }}>
-                <div>
-                  <p style={{ fontSize: 12, color: '#64748b', marginBottom: 4 }}>Status</p>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <span style={{
-                      width: 8, height: 8, borderRadius: '50%',
-                      background: statusColor[electionInfo.status]?.dot ?? '#94a3b8',
-                      display: 'inline-block',
-                    }} />
-                    <span style={{
-                      fontSize: 14, fontWeight: 600,
-                      color: statusColor[electionInfo.status]?.color ?? '#475569',
-                      textTransform: 'capitalize',
-                    }}>
-                      {electionInfo.status}
-                    </span>
-                  </div>
+                <p style={{ fontSize: 12, color: '#64748b', marginBottom: 4 }}>Status</p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{
+                    width: 8, height: 8, borderRadius: '50%',
+                    background: statusColor[electionInfo.status]?.dot ?? '#94a3b8',
+                    display: 'inline-block',
+                  }} />
+                  <span style={{
+                    fontSize: 14, fontWeight: 600,
+                    color: statusColor[electionInfo.status]?.color ?? '#475569',
+                    textTransform: 'capitalize',
+                  }}>
+                    {electionInfo.status}
+                  </span>
                 </div>
               </div>
             )}
@@ -152,7 +137,6 @@ export default function Results() {
               const pct = totalVotes > 0 ? Math.round((Number(r.totalVotes) / totalVotes) * 100) : 0;
               const barPct = Math.round((Number(r.totalVotes) / maxVotes) * 100);
               const isWinner = i === 0;
-              const barColor = barColors[i % barColors.length];
 
               return (
                 <div key={r.candidateId} style={{
@@ -162,15 +146,16 @@ export default function Results() {
                   boxShadow: isWinner ? '0 2px 8px rgba(245,158,11,0.15)' : '0 1px 3px rgba(0,0,0,0.06)',
                   padding: '18px 20px',
                 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                  <div style={{
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                    flexWrap: 'wrap', gap: 8, marginBottom: 12,
+                  }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                      {/* Rank badge */}
                       <div style={{
                         width: 36, height: 36, borderRadius: '50%', flexShrink: 0,
                         background: isWinner ? '#f59e0b' : '#f1f5f9',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontSize: isWinner ? 18 : 14,
-                        fontWeight: 700,
+                        fontSize: isWinner ? 18 : 14, fontWeight: 700,
                         color: isWinner ? 'white' : '#64748b',
                       }}>
                         {isWinner ? '🏆' : i + 1}
@@ -179,9 +164,7 @@ export default function Results() {
                         <p style={{ fontWeight: 700, color: '#0f172a', fontSize: 15, marginBottom: 2 }}>
                           {r.candidateName}
                         </p>
-                        <p style={{ fontSize: 12, color: '#64748b' }}>
-                          {r.partyName ?? 'Independent'}
-                        </p>
+                        <p style={{ fontSize: 12, color: '#64748b' }}>{r.partyName ?? 'Independent'}</p>
                       </div>
                     </div>
                     <div style={{ textAlign: 'right' }}>
@@ -191,12 +174,10 @@ export default function Results() {
                       <p style={{ fontSize: 12, color: '#64748b' }}>{pct}% of votes</p>
                     </div>
                   </div>
-
-                  {/* Progress bar */}
                   <div style={{ background: '#f1f5f9', borderRadius: 999, height: 8, overflow: 'hidden' }}>
                     <div style={{
                       height: 8, borderRadius: 999, width: `${barPct}%`,
-                      background: isWinner ? 'linear-gradient(90deg, #f59e0b, #fbbf24)' : barColor,
+                      background: isWinner ? 'linear-gradient(90deg, #f59e0b, #fbbf24)' : barColors[i % barColors.length],
                       transition: 'width 0.5s ease',
                     }} />
                   </div>

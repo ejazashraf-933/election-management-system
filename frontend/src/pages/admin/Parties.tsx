@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import api from '../../api/axios';
 import { useToast } from '../../context/ToastContext';
+import PageHeader from '../../components/ui/PageHeader';
+import EmptyState from '../../components/ui/EmptyState';
 
 const inp: React.CSSProperties = {
   width: '100%', padding: '11px 14px', border: '1.5px solid #e2e8f0',
@@ -92,34 +94,32 @@ export default function Parties() {
   const initial = form.name?.[0]?.toUpperCase() || editTarget?.name?.[0]?.toUpperCase() || '?';
 
   return (
-    <div style={{ maxWidth: 960, margin: '0 auto', padding: '32px 24px' }}>
-      {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 28 }}>
-        <div>
-          <h1 style={{ fontSize: 26, fontWeight: 700, color: '#0f172a', marginBottom: 4 }}>Political Parties</h1>
-          <p style={{ fontSize: 14, color: '#64748b' }}>Register and manage political parties</p>
-        </div>
-        <button onClick={openCreate} style={{
-          background: '#2563eb', color: 'white', border: 'none',
-          borderRadius: 12, padding: '11px 22px', fontSize: 14, fontWeight: 600,
-        }}>
-          + Add Party
-        </button>
-      </div>
+    <div className="page-wrap">
+      <PageHeader
+        title="Political Parties"
+        subtitle="Register and manage political parties"
+        action={
+          <button onClick={openCreate} style={{
+            background: '#2563eb', color: 'white', border: 'none',
+            borderRadius: 12, padding: '11px 22px', fontSize: 14, fontWeight: 600,
+          }}>+ Add Party</button>
+        }
+      />
 
       {/* Parties grid */}
       <div className="grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
         {parties.length === 0 && (
-          <div style={{
-            gridColumn: '1 / -1', background: 'white', borderRadius: 16,
-            border: '1px solid #e2e8f0', padding: '56px 24px', textAlign: 'center',
-          }}>
-            <div style={{ fontSize: 40, marginBottom: 12 }}>🏛️</div>
-            <p style={{ color: '#94a3b8', fontSize: 14 }}>No parties registered yet.</p>
-            <button onClick={openCreate} style={{
-              marginTop: 16, background: '#eff6ff', color: '#2563eb',
-              border: '1px solid #bfdbfe', borderRadius: 8, padding: '8px 18px', fontSize: 13, fontWeight: 600,
-            }}>+ Register First Party</button>
+          <div style={{ gridColumn: '1 / -1' }}>
+            <EmptyState
+              emoji="🏛️"
+              title="No parties registered yet."
+              action={
+                <button onClick={openCreate} style={{
+                  background: '#eff6ff', color: '#2563eb',
+                  border: '1px solid #bfdbfe', borderRadius: 8, padding: '8px 18px', fontSize: 13, fontWeight: 600,
+                }}>+ Register First Party</button>
+              }
+            />
           </div>
         )}
         {parties.map((p: any) => (

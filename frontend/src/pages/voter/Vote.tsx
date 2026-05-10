@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import api from '../../api/axios';
 import { useToast } from '../../context/ToastContext';
-
-const avatarColors = ['#7c3aed', '#0891b2', '#15803d', '#b45309', '#be123c', '#0369a1'];
+import PageHeader from '../../components/ui/PageHeader';
+import CandidateAvatar from '../../components/ui/CandidateAvatar';
+import EmptyState from '../../components/ui/EmptyState';
 
 export default function Vote() {
   const toast = useToast();
@@ -21,12 +22,10 @@ export default function Vote() {
     api.get('/votes/history').then(r => setMyVotes(r.data));
   }, []);
 
-  // Filter candidates by voter's constituency
   const visibleCandidates = myConstituencyId
     ? candidates.filter((c: any) => c.constituency?.id === myConstituencyId)
     : candidates;
 
-  // Check if already voted in the selected election
   const alreadyVoted = selectedElection
     ? myVotes.find((v: any) => String(v.election?.id) === selectedElection)
     : null;
@@ -49,29 +48,20 @@ export default function Vote() {
 
   if (elections.length === 0) {
     return (
-      <div style={{ maxWidth: 640, margin: '0 auto', padding: '32px 24px' }}>
-        <div style={{ marginBottom: 28 }}>
-          <h1 style={{ fontSize: 26, fontWeight: 700, color: '#0f172a', marginBottom: 4 }}>Cast Your Vote</h1>
-          <p style={{ fontSize: 14, color: '#64748b' }}>Participate in the democratic process</p>
-        </div>
-        <div style={{
-          background: 'white', borderRadius: 20, border: '1px solid #fde68a',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.06)', padding: '56px 32px', textAlign: 'center',
-        }}>
-          <div style={{ fontSize: 48, marginBottom: 16 }}>⏳</div>
-          <p style={{ fontSize: 17, fontWeight: 600, color: '#92400e', marginBottom: 8 }}>No Active Election</p>
-          <p style={{ fontSize: 14, color: '#b45309' }}>Voting is not open at the moment. Check back later.</p>
-        </div>
+      <div className="page-wrap-sm">
+        <PageHeader title="Cast Your Vote" subtitle="Participate in the democratic process" />
+        <EmptyState
+          emoji="⏳"
+          title="No Active Election"
+          description="Voting is not open at the moment. Check back later."
+        />
       </div>
     );
   }
 
   return (
-    <div style={{ maxWidth: 640, margin: '0 auto', padding: '32px 24px' }}>
-      <div style={{ marginBottom: 28 }}>
-        <h1 style={{ fontSize: 26, fontWeight: 700, color: '#0f172a', marginBottom: 4 }}>Cast Your Vote</h1>
-        <p style={{ fontSize: 14, color: '#64748b' }}>Your vote is anonymous and secure</p>
-      </div>
+    <div className="page-wrap-sm">
+      <PageHeader title="Cast Your Vote" subtitle="Your vote is anonymous and secure" />
 
       {myConstituencyId && !alreadyVoted && (
         <div style={{
@@ -89,10 +79,8 @@ export default function Vote() {
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
           <div style={{
-            width: 28, height: 28, borderRadius: '50%',
-            background: '#eff6ff', color: '#2563eb',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: 13, fontWeight: 700,
+            width: 28, height: 28, borderRadius: '50%', background: '#eff6ff', color: '#2563eb',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700,
           }}>1</div>
           <p style={{ fontSize: 14, fontWeight: 600, color: '#0f172a' }}>Select Election</p>
         </div>
@@ -115,31 +103,23 @@ export default function Vote() {
       {alreadyVoted && (
         <div style={{
           background: '#f0fdf4', border: '1px solid #86efac', borderRadius: 16,
-          padding: '24px 24px', textAlign: 'center',
+          padding: '24px', textAlign: 'center',
         }}>
           <div style={{ fontSize: 36, marginBottom: 12 }}>✅</div>
-          <p style={{ fontSize: 16, fontWeight: 700, color: '#14532d', marginBottom: 8 }}>
+          <p style={{ fontSize: 16, fontWeight: 700, color: '#14532d', marginBottom: 16 }}>
             You have already voted in this election
           </p>
           <div style={{
-            display: 'inline-flex', alignItems: 'center', gap: 12,
+            display: 'flex', alignItems: 'center', gap: 12,
             background: 'white', border: '1px solid #86efac', borderRadius: 12,
-            padding: '12px 20px', marginTop: 4,
+            padding: '12px 20px', maxWidth: 280, margin: '0 auto',
           }}>
-            {alreadyVoted.candidate?.photo
-              ? <img src={alreadyVoted.candidate.photo} style={{ width: 40, height: 40, borderRadius: '50%', objectFit: 'cover' }} alt="" />
-              : (
-                <div style={{
-                  width: 40, height: 40, borderRadius: '50%',
-                  background: '#7c3aed15', border: '2px solid #7c3aed30',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  color: '#7c3aed', fontWeight: 700, fontSize: 16,
-                }}>
-                  {alreadyVoted.candidate?.user?.name?.[0]?.toUpperCase()}
-                </div>
-              )
-            }
-            <div style={{ textAlign: 'left' }}>
+            <CandidateAvatar
+              photo={alreadyVoted.candidate?.photo}
+              name={alreadyVoted.candidate?.user?.name ?? '?'}
+              size={40}
+            />
+            <div style={{ textAlign: 'left', minWidth: 0 }}>
               <p style={{ fontWeight: 700, color: '#0f172a', fontSize: 15 }}>
                 {alreadyVoted.candidate?.user?.name}
               </p>
@@ -154,20 +134,17 @@ export default function Vote() {
         </div>
       )}
 
-      {/* Voting form — only if not yet voted */}
+      {/* Voting form */}
       {selectedElection && !alreadyVoted && (
         <form onSubmit={castVote}>
-          {/* Step 2: Candidate */}
           <div style={{
             background: 'white', borderRadius: 16, border: '1px solid #e2e8f0',
             boxShadow: '0 1px 3px rgba(0,0,0,0.08)', padding: 24, marginBottom: 16,
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
               <div style={{
-                width: 28, height: 28, borderRadius: '50%',
-                background: '#eff6ff', color: '#2563eb',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 13, fontWeight: 700,
+                width: 28, height: 28, borderRadius: '50%', background: '#eff6ff', color: '#2563eb',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700,
               }}>2</div>
               <p style={{ fontSize: 14, fontWeight: 600, color: '#0f172a' }}>Select Candidate</p>
             </div>
@@ -183,7 +160,6 @@ export default function Vote() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {visibleCandidates.map((c: any, i: number) => {
                   const selected = String(selectedCandidate) === String(c.id);
-                  const color = avatarColors[i % avatarColors.length];
                   return (
                     <label key={c.id} style={{
                       display: 'flex', alignItems: 'center', gap: 14,
@@ -195,19 +171,7 @@ export default function Vote() {
                       <input type="radio" name="candidate" value={c.id}
                         style={{ display: 'none' }}
                         onChange={() => setSelectedCandidate(String(c.id))} />
-                      {c.photo
-                        ? <img src={c.photo} style={{ width: 44, height: 44, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} alt="" />
-                        : (
-                          <div style={{
-                            width: 44, height: 44, borderRadius: '50%', flexShrink: 0,
-                            background: `${color}15`, border: `2px solid ${color}30`,
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            color, fontWeight: 700, fontSize: 18,
-                          }}>
-                            {c.user?.name?.[0]?.toUpperCase()}
-                          </div>
-                        )
-                      }
+                      <CandidateAvatar photo={c.photo} name={c.user?.name ?? '?'} size={44} colorIndex={i} />
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <p style={{ fontWeight: 600, color: '#0f172a', fontSize: 15, marginBottom: 2 }}>
                           {c.user?.name}
@@ -236,7 +200,6 @@ export default function Vote() {
             background: loading ? '#93c5fd' : !selectedCandidate ? '#e2e8f0' : '#2563eb',
             color: !selectedCandidate ? '#94a3b8' : 'white',
             border: 'none', borderRadius: 12,
-            cursor: loading || !selectedCandidate ? 'not-allowed' : 'pointer',
           }}>
             {loading ? 'Submitting...' : 'Submit Vote'}
           </button>

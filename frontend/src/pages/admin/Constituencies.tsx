@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import api from '../../api/axios';
 import { useToast } from '../../context/ToastContext';
+import PageHeader from '../../components/ui/PageHeader';
+import EmptyState from '../../components/ui/EmptyState';
 
 const inp: React.CSSProperties = {
   width: '100%', padding: '11px 14px', border: '1.5px solid #e2e8f0',
@@ -78,34 +80,32 @@ export default function Constituencies() {
   const accentColor = PROVINCE_COLORS[form.province] || PROVINCE_COLORS[editTarget?.province] || PROVINCE_COLORS.default;
 
   return (
-    <div style={{ maxWidth: 960, margin: '0 auto', padding: '32px 24px' }}>
-      {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 28 }}>
-        <div>
-          <h1 style={{ fontSize: 26, fontWeight: 700, color: '#0f172a', marginBottom: 4 }}>Constituencies</h1>
-          <p style={{ fontSize: 14, color: '#64748b' }}>Manage election constituencies and provinces</p>
-        </div>
-        <button onClick={openCreate} style={{
-          background: '#2563eb', color: 'white', border: 'none',
-          borderRadius: 12, padding: '11px 22px', fontSize: 14, fontWeight: 600,
-        }}>
-          + Add Constituency
-        </button>
-      </div>
+    <div className="page-wrap">
+      <PageHeader
+        title="Constituencies"
+        subtitle="Manage election constituencies and provinces"
+        action={
+          <button onClick={openCreate} style={{
+            background: '#2563eb', color: 'white', border: 'none',
+            borderRadius: 12, padding: '11px 22px', fontSize: 14, fontWeight: 600,
+          }}>+ Add Constituency</button>
+        }
+      />
 
       {/* Grid */}
       <div className="grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
         {items.length === 0 && (
-          <div style={{
-            gridColumn: '1 / -1', background: 'white', borderRadius: 16,
-            border: '1px solid #e2e8f0', padding: '56px 24px', textAlign: 'center',
-          }}>
-            <div style={{ fontSize: 40, marginBottom: 12 }}>🗺️</div>
-            <p style={{ color: '#94a3b8', fontSize: 14 }}>No constituencies added yet.</p>
-            <button onClick={openCreate} style={{
-              marginTop: 16, background: '#eff6ff', color: '#2563eb',
-              border: '1px solid #bfdbfe', borderRadius: 8, padding: '8px 18px', fontSize: 13, fontWeight: 600,
-            }}>+ Add First Constituency</button>
+          <div style={{ gridColumn: '1 / -1' }}>
+            <EmptyState
+              emoji="🗺️"
+              title="No constituencies added yet."
+              action={
+                <button onClick={openCreate} style={{
+                  background: '#eff6ff', color: '#2563eb',
+                  border: '1px solid #bfdbfe', borderRadius: 8, padding: '8px 18px', fontSize: 13, fontWeight: 600,
+                }}>+ Add First Constituency</button>
+              }
+            />
           </div>
         )}
         {items.map((c: any) => {
