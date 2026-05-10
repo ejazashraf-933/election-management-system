@@ -37,12 +37,16 @@ export default function Register() {
         name: form.name,
         email: form.email,
         password: form.password,
-        role: 'voter',
         constituencyId: Number(form.constituencyId),
       });
       navigate('/login');
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Registration failed');
+      const msg = err.response?.data?.message;
+      setError(
+        Array.isArray(msg) ? 'Please check your details and try again.' :
+        msg === 'email already in use' ? 'An account with this email already exists.' :
+        msg || 'Registration failed. Please try again.'
+      );
     } finally {
       setLoading(false);
     }
