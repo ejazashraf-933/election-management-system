@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Build output
+dist/
+**/dist/
+build/
+
+# Environment variables
+.env
+**/.env
+
+# Logs
+logs/
+*.log
+
+# Claude
+.claude/
+**/.claude/
+
+# PDF files
+*.pdf
+
+# OS
+.DS_Store
+
+# Coverage
+coverage/
+
+# Temp
+.temp
+.tmp
