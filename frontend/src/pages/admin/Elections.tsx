@@ -5,10 +5,13 @@ import PageHeader from '../../components/ui/PageHeader';
 import EmptyState from '../../components/ui/EmptyState';
 
 const statusMap: Record<string, { label: string; dot: string; bg: string; color: string; borderLeft: string }> = {
-  pending: { label: 'Pending', dot: '#f59e0b', bg: '#fffbeb', color: '#92400e', borderLeft: '#f59e0b' },
-  running: { label: 'Running', dot: '#22c55e', bg: '#f0fdf4', color: '#14532d', borderLeft: '#22c55e' },
-  paused:  { label: 'Paused',  dot: '#f97316', bg: '#fff7ed', color: '#7c2d12', borderLeft: '#f97316' },
-  ended:   { label: 'Ended',   dot: '#94a3b8', bg: '#f8fafc', color: '#475569', borderLeft: '#cbd5e1' },
+  pending:            { label: 'Pending',            dot: '#f59e0b', bg: '#fffbeb', color: '#92400e', borderLeft: '#f59e0b' },
+  nomination_open:    { label: 'Nominations Open',   dot: '#7c3aed', bg: '#fdf4ff', color: '#6d28d9', borderLeft: '#7c3aed' },
+  nomination_closed:  { label: 'Nominations Closed', dot: '#0891b2', bg: '#ecfeff', color: '#164e63', borderLeft: '#0891b2' },
+  running:            { label: 'Running',            dot: '#22c55e', bg: '#f0fdf4', color: '#14532d', borderLeft: '#22c55e' },
+  paused:             { label: 'Paused',             dot: '#f97316', bg: '#fff7ed', color: '#7c2d12', borderLeft: '#f97316' },
+  counting:           { label: 'Counting',           dot: '#1d4ed8', bg: '#eff6ff', color: '#1e3a8a', borderLeft: '#1d4ed8' },
+  ended:              { label: 'Ended',              dot: '#94a3b8', bg: '#f8fafc', color: '#475569', borderLeft: '#cbd5e1' },
 };
 
 const inpStyle: React.CSSProperties = {
@@ -19,7 +22,7 @@ const inpStyle: React.CSSProperties = {
 export default function Elections() {
   const toast = useToast();
   const [elections, setElections] = useState<any[]>([]);
-  const [form, setForm] = useState({ title: '', description: '' });
+  const [form, setForm] = useState({ title: '', description: '', electionType: 'general', scheduledDate: '', totalSeats: '' });
 
   const load = async () => { const res = await api.get('/elections'); setElections(res.data); };
   useEffect(() => { load(); }, []);
@@ -27,8 +30,14 @@ export default function Elections() {
   const create = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await api.post('/elections', form);
-      setForm({ title: '', description: '' });
+      await api.post('/elections', {
+        title: form.title,
+        description: form.description || undefined,
+        electionType: form.electionType,
+        scheduledDate: form.scheduledDate || undefined,
+        totalSeats: form.totalSeats ? Number(form.totalSeats) : undefined,
+      });
+      setForm({ title: '', description: '', electionType: 'general', scheduledDate: '', totalSeats: '' });
       toast('Election created successfully', 'success');
       load();
     } catch (err: any) {
@@ -59,17 +68,27 @@ export default function Elections() {
         <p style={{ fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 14, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
           Create New Election
         </p>
-        <form className="flex-row" onSubmit={create}>
-          <input style={inpStyle} placeholder="Election title" value={form.title}
-            onChange={e => setForm({ ...form, title: e.target.value })} required />
-          <input style={inpStyle} placeholder="Description (optional)" value={form.description}
-            onChange={e => setForm({ ...form, description: e.target.value })} />
-          <button type="submit" style={{
-            background: '#2563eb', color: 'white', border: 'none',
-            borderRadius: 10, padding: '11px 22px', fontSize: 14, fontWeight: 600, whiteSpace: 'nowrap',
-          }}>
-            + Create
-          </button>
+        <form onSubmit={create}>
+          <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr auto', gap: 10, flexWrap: 'wrap' }}>
+            <input style={inpStyle} placeholder="Election title *" value={form.title}
+              onChange={e => setForm({ ...form, title: e.target.value })} required />
+            <select style={inpStyle} value={form.electionType}
+              onChange={e => setForm({ ...form, electionType: e.target.value })}>
+              <option value="general">General</option>
+              <option value="by_election">By-Election</option>
+              <option value="local_body">Local Body</option>
+            </select>
+            <input style={inpStyle} placeholder="Description (optional)" value={form.description}
+              onChange={e => setForm({ ...form, description: e.target.value })} />
+            <input style={inpStyle} type="number" placeholder="Total seats (e.g. 53)" value={form.totalSeats}
+              onChange={e => setForm({ ...form, totalSeats: e.target.value })} min="1" />
+            <button type="submit" style={{
+              background: '#2563eb', color: 'white', border: 'none',
+              borderRadius: 10, padding: '11px 22px', fontSize: 14, fontWeight: 600, whiteSpace: 'nowrap',
+            }}>
+              + Create
+            </button>
+          </div>
         </form>
       </div>
 
@@ -105,19 +124,37 @@ export default function Elections() {
                 )}
               </div>
               <div className="btn-group">
-                {(el.status === 'pending' || el.status === 'paused') && (
+                {el.status === 'pending' && (
+                  <button onClick={() => action(el.id, 'open-nominations')} style={{
+                    background: '#fdf4ff', color: '#7c3aed', border: '1px solid #d8b4fe',
+                    borderRadius: 8, padding: '7px 14px', fontSize: 13, fontWeight: 500,
+                  }}>📋 Open Nominations</button>
+                )}
+                {el.status === 'nomination_open' && (
+                  <button onClick={() => action(el.id, 'close-nominations')} style={{
+                    background: '#ecfeff', color: '#0891b2', border: '1px solid #67e8f9',
+                    borderRadius: 8, padding: '7px 14px', fontSize: 13, fontWeight: 500,
+                  }}>🔒 Close Nominations</button>
+                )}
+                {(el.status === 'nomination_closed' || el.status === 'paused') && (
                   <button onClick={() => action(el.id, 'start')} style={{
                     background: '#f0fdf4', color: '#16a34a', border: '1px solid #86efac',
                     borderRadius: 8, padding: '7px 14px', fontSize: 13, fontWeight: 500,
-                  }}>▶ Start</button>
+                  }}>▶ Start Voting</button>
                 )}
                 {el.status === 'running' && (
-                  <button onClick={() => action(el.id, 'pause')} style={{
-                    background: '#fff7ed', color: '#c2410c', border: '1px solid #fdba74',
-                    borderRadius: 8, padding: '7px 14px', fontSize: 13, fontWeight: 500,
-                  }}>⏸ Pause</button>
+                  <>
+                    <button onClick={() => action(el.id, 'pause')} style={{
+                      background: '#fff7ed', color: '#c2410c', border: '1px solid #fdba74',
+                      borderRadius: 8, padding: '7px 14px', fontSize: 13, fontWeight: 500,
+                    }}>⏸ Pause</button>
+                    <button onClick={() => action(el.id, 'start-counting')} style={{
+                      background: '#eff6ff', color: '#1d4ed8', border: '1px solid #93c5fd',
+                      borderRadius: 8, padding: '7px 14px', fontSize: 13, fontWeight: 500,
+                    }}>🔢 Start Counting</button>
+                  </>
                 )}
-                {el.status !== 'ended' && (
+                {(el.status === 'counting' || el.status === 'running' || el.status === 'paused') && (
                   <button onClick={() => action(el.id, 'end')} style={{
                     background: '#f8fafc', color: '#475569', border: '1px solid #cbd5e1',
                     borderRadius: 8, padding: '7px 14px', fontSize: 13, fontWeight: 500,

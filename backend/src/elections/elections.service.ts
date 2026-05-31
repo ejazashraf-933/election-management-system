@@ -10,8 +10,13 @@ export class ElectionsService {
     private electionsRepository: Repository<Election>,
   ) {}
 
-  async create(data: Partial<Election>): Promise<Election> {
-    const election = this.electionsRepository.create(data);
+  async create(data: any): Promise<Election> {
+    const payload: Partial<Election> = { ...data };
+    if (data.nominationStartDate) payload.nominationStartDate = new Date(data.nominationStartDate);
+    if (data.nominationEndDate) payload.nominationEndDate = new Date(data.nominationEndDate);
+    if (data.withdrawalDeadline) payload.withdrawalDeadline = new Date(data.withdrawalDeadline);
+    if (data.scheduledDate) payload.scheduledDate = new Date(data.scheduledDate);
+    const election = this.electionsRepository.create(payload);
     return this.electionsRepository.save(election);
   }
 
@@ -29,6 +34,26 @@ export class ElectionsService {
     return this.electionsRepository.findOne({
       where: { status: ElectionStatus.RUNNING },
     });
+  }
+
+  async openNominations(id: number): Promise<Election> {
+    const election = await this.findOne(id);
+    if (election.status !== ElectionStatus.PENDING) {
+      throw new BadRequestException('Only pending elections can open nominations');
+    }
+    election.status = ElectionStatus.NOMINATION_OPEN;
+    election.nominationStartDate = new Date();
+    return this.electionsRepository.save(election);
+  }
+
+  async closeNominations(id: number): Promise<Election> {
+    const election = await this.findOne(id);
+    if (election.status !== ElectionStatus.NOMINATION_OPEN) {
+      throw new BadRequestException('Nominations are not open');
+    }
+    election.status = ElectionStatus.NOMINATION_CLOSED;
+    election.nominationEndDate = new Date();
+    return this.electionsRepository.save(election);
   }
 
   async start(id: number): Promise<Election> {
@@ -53,6 +78,15 @@ export class ElectionsService {
       throw new BadRequestException('Only a running election can be paused');
     }
     election.status = ElectionStatus.PAUSED;
+    return this.electionsRepository.save(election);
+  }
+
+  async startCounting(id: number): Promise<Election> {
+    const election = await this.findOne(id);
+    if (election.status !== ElectionStatus.RUNNING && election.status !== ElectionStatus.PAUSED) {
+      throw new BadRequestException('Election must be running or paused to start counting');
+    }
+    election.status = ElectionStatus.COUNTING;
     return this.electionsRepository.save(election);
   }
 

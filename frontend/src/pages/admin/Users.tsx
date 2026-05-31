@@ -4,15 +4,30 @@ import { useToast } from '../../context/ToastContext';
 import PageHeader from '../../components/ui/PageHeader';
 
 const roleColors: Record<string, { bg: string; color: string; border: string }> = {
-  superadmin: { bg: '#fef9c3', color: '#713f12', border: '#fde047' },
-  admin:      { bg: '#eff6ff', color: '#1d4ed8', border: '#bfdbfe' },
-  candidate:  { bg: '#f0fdf4', color: '#15803d', border: '#86efac' },
-  voter:      { bg: '#f8fafc', color: '#475569', border: '#cbd5e1' },
+  superadmin:                 { bg: '#fef9c3', color: '#713f12', border: '#fde047' },
+  admin:                      { bg: '#eff6ff', color: '#1d4ed8', border: '#bfdbfe' },
+  chief_election_commissioner:{ bg: '#fdf4ff', color: '#6d28d9', border: '#d8b4fe' },
+  district_returning_officer: { bg: '#ecfeff', color: '#164e63', border: '#67e8f9' },
+  returning_officer:          { bg: '#fff7ed', color: '#92400e', border: '#fde68a' },
+  presiding_officer:          { bg: '#f0fdf4', color: '#14532d', border: '#86efac' },
+  polling_agent:              { bg: '#f8fafc', color: '#334155', border: '#94a3b8' },
+  observer:                   { bg: '#f1f5f9', color: '#475569', border: '#cbd5e1' },
+  candidate:                  { bg: '#f0fdf4', color: '#15803d', border: '#86efac' },
+  voter:                      { bg: '#f8fafc', color: '#475569', border: '#cbd5e1' },
 };
 
 const roleIcons: Record<string, string> = {
   superadmin: '👑', admin: '🛡️', candidate: '🏛️', voter: '👤',
+  chief_election_commissioner: '⚖️', district_returning_officer: '🗂️',
+  returning_officer: '📋', presiding_officer: '🏫',
+  polling_agent: '👁️', observer: '🔍',
 };
+
+const ALL_ROLES = [
+  'voter', 'candidate', 'admin', 'superadmin',
+  'chief_election_commissioner', 'district_returning_officer',
+  'returning_officer', 'presiding_officer', 'polling_agent', 'observer',
+];
 
 export default function Users() {
   const toast = useToast();
@@ -57,11 +72,23 @@ export default function Users() {
   const roleCounts: Record<string, number> = { all: users.length };
   users.forEach(u => { roleCounts[u.role] = (roleCounts[u.role] ?? 0) + 1; });
 
+  const changeRole = async (userId: number, role: string) => {
+    try {
+      await api.patch(`/users/${userId}/role`, { role });
+      toast('Role updated', 'success');
+      load();
+    } catch (err: any) {
+      toast(err.response?.data?.message || 'Failed', 'error');
+    }
+  };
+
   const rolePills = [
     { key: 'all', label: 'All' },
     { key: 'voter', label: 'Voters' },
     { key: 'candidate', label: 'Candidates' },
-    { key: 'superadmin', label: 'Superadmins' },
+    { key: 'admin', label: 'Admins' },
+    { key: 'presiding_officer', label: 'Presiding Officers' },
+    { key: 'returning_officer', label: 'Returning Officers' },
   ];
 
   const noConstituency = users.filter(u => !u.constituency).length;
@@ -188,7 +215,25 @@ export default function Users() {
                       {u.constituency
                         ? `📍 ${u.constituency.name} — ${u.constituency.province}`
                         : '📍 No constituency assigned'}
+                      {u.cnic && <span style={{ marginLeft: 10 }}>🪪 {u.cnic}</span>}
+                      {u.voterStatus && u.voterStatus !== 'registered' && (
+                        <span style={{ marginLeft: 10, color: '#dc2626' }}>⚠️ {u.voterStatus}</span>
+                      )}
                     </p>
+                  </div>
+
+                  {/* Change role */}
+                  <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                    <select
+                      defaultValue={u.role}
+                      onChange={e => changeRole(u.id, e.target.value)}
+                      style={{
+                        padding: '7px 10px', border: '1.5px solid #e2e8f0', borderRadius: 8,
+                        fontSize: 12, color: '#1e293b', background: 'white',
+                      }}
+                    >
+                      {ALL_ROLES.map(r => <option key={r} value={r}>{r.replace(/_/g, ' ')}</option>)}
+                    </select>
                   </div>
 
                   {/* Assign constituency */}
